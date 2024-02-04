@@ -5,14 +5,14 @@ import 'package:assignmentecom/data/repo/repo.dart';
 import 'package:assignmentecom/data/service/client.dart';
 import 'package:assignmentecom/firebase_options.dart';
 import 'package:assignmentecom/models/fakedatamodel.dart';
+import 'package:assignmentecom/ui/cart.dart';
 import 'package:assignmentecom/ui/detailpage.dart';
 import 'package:assignmentecom/ui/login.dart';
-import 'package:assignmentecom/ui/splash.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/adapters.dart';
+
 import 'package:provider/provider.dart';
 
 Future<void> main() async {
@@ -21,6 +21,18 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  // Hive.registerAdapter(FakeModelAdapter());
+  await Hive.initFlutter();
+  if (!Hive.isAdapterRegistered(FakeModelAdapter().typeId)) {
+    Hive.registerAdapter(FakeModelAdapter());
+  }
+  if (!Hive.isAdapterRegistered(RatingAdapter().typeId)) {
+    Hive.registerAdapter(RatingAdapter());
+  }
+
+  if (!Hive.isAdapterRegistered(CartItemAdapter().typeId)) {
+    Hive.registerAdapter(CartItemAdapter());
+  }
   runApp(const MyApp());
 }
 
@@ -79,8 +91,8 @@ class _MyHomePageState extends State<MyHomePage> {
       drawer: Drawer(
         child: RefreshIndicator(
           onRefresh: () async {
-            log('Refreshed', name: 'Refresh');
-            Provider.of<MyDataProvider>(context, listen: false).fetchData();
+            // log('Refreshed', name: 'Refresh');
+            // Provider.of<MyDataProvider>(context, listen: false).fetchData();
           },
           child: ListView(
             children: const [SignOutButton()],
@@ -88,29 +100,39 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       appBar: AppBar(
-        title: const Text('Flutter Demo Home Page'),
+        actions: [
+          GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const CartPage()));
+              },
+              child: const Icon(Icons.shopping_bag))
+        ],
+        title: const Text(''),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
           Expanded(
             child: Consumer<MyDataProvider>(builder: (context, data, _) {
-              log(data.data.length.toString());
+              // log(data.data.length.toString());
               return data.isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio:
-                            0.7, // Adjust the aspect ratio to increase the height
-                      ),
-                      itemCount: data.data.length,
-                      itemBuilder: (context, index) {
-                        final product = data.data[index];
-                        return ProductCard(product: product);
-                      },
-                    );
+                  : data.data.isEmpty
+                      ? const Text("No data found")
+                      : GridView.builder(
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio:
+                                0.7, // Adjust the aspect ratio to increase the height
+                          ),
+                          itemCount: data.data.length,
+                          itemBuilder: (context, index) {
+                            final product = data.data[index];
+                            return ProductCard(product: product);
+                          },
+                        );
             }),
           ),
         ],
@@ -178,6 +200,8 @@ class ProductCard extends StatelessWidget {
                     style: const ButtonStyle(
                         elevation: MaterialStatePropertyAll(0.0)),
                     onPressed: () {
+                      Provider.of<MyDataProvider>(context, listen: false)
+                          .saveToCart(product, 1);
                       // Add your add to cart logic here
                     },
                     child: const Text('Add to Cart'),
