@@ -63,6 +63,37 @@ class _CartPageState extends State<CartPage> {
                         );
             }),
           ),
+          Consumer<MyDataProvider>(builder: (context, data, _) {
+            //calculate sum by adding all the products quantity*price
+            double sum = 0;
+            for (var item in data.cart) {
+              sum += item.fakeModel.price! * item.quantity;
+            }
+
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    "Total: \$${sum.toStringAsFixed(2)}",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  ElevatedButton(
+                    onPressed: () {},
+                    child: const Text("Checkout"),
+                  ),
+                ],
+              ),
+            );
+          })
         ],
       ),
     );
@@ -196,15 +227,15 @@ class _QuantityWidgetState extends State<QuantityWidget> {
       children: [
         IconButton(
           onPressed: _decreaseQuantity,
-          icon: Icon(Icons.remove),
+          icon: const Icon(Icons.remove),
         ),
         Text(
           '$_quantity',
-          style: TextStyle(fontSize: 16.0),
+          style: const TextStyle(fontSize: 16.0),
         ),
         IconButton(
           onPressed: _increaseQuantity,
-          icon: Icon(Icons.add),
+          icon: const Icon(Icons.add),
         ),
       ],
     );
