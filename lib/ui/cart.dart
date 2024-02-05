@@ -16,7 +16,6 @@ class CartPage extends StatefulWidget {
 class _CartPageState extends State<CartPage> {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -51,12 +50,17 @@ class _CartPageState extends State<CartPage> {
                                   const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
                                 childAspectRatio:
-                                    0.7, // Adjust the aspect ratio to increase the height
+                                    0.6, // Adjust the aspect ratio to increase the height
                               ),
                               itemCount: cart.length,
                               itemBuilder: (context, index) {
                                 final product = cart[index];
-                                return CartCard(product: product, index: index);
+                                return CartCard(
+                                  product: product,
+                                  index: index,
+                                  key: ValueKey<String>(
+                                      product.fakeModel.id.toString()),
+                                );
                               },
                             );
                           },
@@ -112,6 +116,7 @@ class CartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    log(product.fakeModel.title.toString());
     return InkWell(
       onTap: () {
         Navigator.push(
